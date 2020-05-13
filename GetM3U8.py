@@ -5,35 +5,39 @@ import pymysql
 import requests
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
-options = webdriver.ChromeOptions()
-num = str(float(random.randint(500, 600)))
-options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/{}"
-                     " (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/{}".format(num, num))
-# 禁止图片和css加载
-prefs = {"profile.managed_default_content_settings.images": 2, 'permissions.default.stylesheet': 2}
-options.add_experimental_option("prefs", prefs)
-options.add_argument('--window-position=0,0');
-#chrome 启动初始位置
-options.add_argument('--window-position=0,0');
-#chrome 启动初始大小
-options.add_argument('--window-size=1080,800');
+class AutoSearch():
+    def __init__(self):
 
-browser=webdriver.Chrome(options=options)
+        self.options = webdriver.ChromeOptions()
 
-def getM3U8(strURL):
-        browser.get('https://v.7cyd.com/vip/?url='+strURL+'&mm=1&title=七彩解析_永久免费_高速稳定&yuming=https://jx.7cyd.com/&jiazai=正在加载中！请稍等....&beiyong=')
-        cookie = browser.get_cookies()
+        num = str(float(random.randint(500, 600)))
+        self.options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/{}"
+                             " (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/{}".format(num, num))
+        # 禁止图片和css加载
+        prefs = {"profile.managed_default_content_settings.images": 2, 'permissions.default.stylesheet': 2}
+        self.options.add_experimental_option("prefs", prefs)
+
+
+        self.options.add_argument('--window-position=0,0');
+        #chrome 启动初始位置
+        self.options.add_argument('--window-position=0,0');
+        #chrome 启动初始大小
+        self.options.add_argument('--window-size=1080,800');
+
+        self.browser=webdriver.Chrome(options=self.options)
+
+def getM3U8(self,strURL):
+        self.browser.get('https://v.7cyd.com/vip/?url='+strURL+'&mm=1&title=七彩解析_永久免费_高速稳定&yuming=https://jx.7cyd.com/&jiazai=正在加载中！请稍等....&beiyong=')
+        cookie = self.browser.get_cookies()
         sleep(0.5)
-
-        #拿到 js中动态参数做post传值
         jsm1 = 'return m1'
-        return_valjsm1=browser.execute_script(jsm1)
+        return_valjsm1= self.browser.execute_script(jsm1)
         jsm2 = 'return m2'
-        return_valjsm2 = browser.execute_script(jsm2)
+        return_valjsm2 = self.browser.execute_script(jsm2)
         jsm3 = 'return m3'
-        return_valjsm3 = browser.execute_script(jsm3)
+        return_valjsm3 = self.browser.execute_script(jsm3)
         jsmxxx = 'return ഈഇആഅ'
-        return_valjsmxxx = browser.execute_script(jsmxxx)  #执行javascript
+        return_valjsmxxx = self.browser.execute_script(jsmxxx)
         poststr='lg=4&time='+return_valjsm3+'&ip=223.91.29.107&key='+return_valjsm1+'&key2='+return_valjsm2+'&key3='+return_valjsmxxx+'&url='+strURL+''
 
         cookiename = cookie[0]['name']
@@ -58,13 +62,14 @@ def getM3U8(strURL):
         return re.content
 
 if __name__ == '__main__':
-    # 连接database
+
+   # 连接database
     conn = pymysql.connect(host='localhost', user ='rootaw', password ='rootaw', database ='rootaw', charset ='utf8')
     # 得到一个可以执行SQL语句的光标对象
     cursor = conn.cursor()
 
     # 定义要执行的SQL语句
-
+    obj = AutoSearch()
     for i in range(0,100):
 
         sql = 'select vod_url from ff_vod limit %d,1' % i
@@ -72,10 +77,12 @@ if __name__ == '__main__':
         cursor.execute(sql)
         strUrls=cursor.fetchall()
         listUrls=str(strUrls).replace(',','').replace(')','').replace('\'','').split('$')
+
         for url in listUrls:
             if(url.find('iqiyi.com')!=-1):
                 urlhtml=url.split('\\r')[0]
-                m3u8=str(getM3U8(urlhtml))
+              
+                m3u8=str(getM3U8(obj,urlhtml))
                 #m3u8='b\'{"play":"dp","title":null,"code":200,"success":1,"lg":"4","cache":"iqiyi","url":"https:\\/\\/v.7cyd.com\\/api\\/data\\/iqiyi\\/d390b7a3887d06eb2d1d82497b970634.m3u8","type":"m3u8"}\''
                 if(m3u8.find('.m3u8')!=-1&m3u8.find('http')!=-1):
                     m3u8=m3u8[m3u8.find('http'): m3u8.find('.m3u8')+5].replace('/','').replace('\\\\','\\')
@@ -84,6 +91,7 @@ if __name__ == '__main__':
     cursor.close()
     # 关闭数据库连接
     conn.close()
+
 
 
 
